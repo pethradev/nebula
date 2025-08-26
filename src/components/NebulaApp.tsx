@@ -1,7 +1,6 @@
 // src/components/NebulaApp.tsx
 "use client";
 
-// 👇 1. Importe useState e useEffect
 import React, { useState, useEffect } from "react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { Player, SheetState, INITIAL_SHEET } from "@/constants/gameData";
@@ -11,18 +10,24 @@ import { PlayersSetup } from "./PlayersSetup";
 import { PlayerSheet } from "./PlayerSheet";
 import { EventDrawers } from "./Drawer";
 
+type Tab = "setup" | "sheet" | "cards";
+
 export function NebulaApp() {
   const [players, setPlayers] = useLocalStorage<Player[]>("nebula.players", []);
   const [sheet, setSheet] = useLocalStorage<SheetState>("nebula.sheet", INITIAL_SHEET);
-  const [tab, setTab] = useLocalStorage<"setup" | "sheet" | "cards">("nebula.tab", "setup");
+  const [tab, setTab] = useLocalStorage<Tab>("nebula.tab", "setup");
 
-  // 👇 2. Crie um estado para saber se o componente está montado no cliente
   const [isClient, setIsClient] = useState(false);
 
-  // 👇 3. Use useEffect para atualizar o estado APÓS a montagem no cliente
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const tabs: { id: Tab; label: string }[] = [
+    { id: "setup", label: "Jogadores" },
+    { id: "sheet", label: "Minha Ficha" },
+    { id: "cards", label: "Cartas" },
+  ];
 
   return (
     <>
@@ -40,11 +45,7 @@ export function NebulaApp() {
             </div>
           </div>
           <nav className="flex items-center gap-1 sm:gap-2">
-            {[
-              { id: "setup", label: "Jogadores" },
-              { id: "sheet", label: "Minha Ficha" },
-              { id: "cards", label: "Cartas" },
-            ].map((t: any) => (
+            {tabs.map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
@@ -63,11 +64,14 @@ export function NebulaApp() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 md:py-10 flex flex-col gap-6">
-        {/* 👇 4. Só renderize o conteúdo das abas se isClient for true */}
         {isClient && (
           <>
-            {tab === "setup" && <PlayersSetup players={players} setPlayers={setPlayers} />}
-            {tab === "sheet" && <PlayerSheet players={players} sheet={sheet} setSheet={setSheet} />}
+            {tab === "setup" && (
+              <PlayersSetup players={players} setPlayers={setPlayers} />
+            )}
+            {tab === "sheet" && (
+              <PlayerSheet players={players} sheet={sheet} setSheet={setSheet} />
+            )}
             {tab === "cards" && <EventDrawers />}
           </>
         )}
